@@ -31,7 +31,7 @@ jobs:
           baseUrl: https://api.getport.io  # Use https://api.us.getport.io if you are in the US region
           operation: UPSERT
           identifier: ${{ github.repository }}
-          blueprint: Service  # Replace with your actual blueprint ID
+          blueprint: service  # Replace with your actual blueprint ID
           properties: |
             {
               "repository": "${{ github.repository }}",
