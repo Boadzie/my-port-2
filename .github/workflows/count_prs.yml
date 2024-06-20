@@ -1,0 +1,39 @@
+name: Count Open PRs
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Runs daily at midnight
+  workflow_dispatch:
+
+jobs:
+  count-open-prs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Get Open PR Count
+        id: pr_count
+        run: |
+          PR_COUNT=$(curl -s -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls?state=open" \
+            | jq length)
+          echo "open_pr_count=$PR_COUNT" >> $GITHUB_ENV
+
+      - name: Send Data to Port
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.CLIENT_ID }}
+          clientSecret: ${{ secrets.CLIENT_SECRET }}
+          baseUrl: https://api.getport.io  # Use https://api.us.getport.io if you are in the US region
+          operation: UPSERT
+          identifier: ${{ github.repository }}
+          blueprint: myBlueprint  # Replace with your actual blueprint ID
+          properties: |
+            {
+              "repository": "${{ github.repository }}",
+              "open_pr_count": "${{ env.open_pr_count }}"
+            }
